@@ -41,7 +41,7 @@ def probe(p):
  j=json.loads(r.stdout);v=next(x for x in j['streams'] if x['codec_type']=='video')
  return {'w':v['width'],'h':v['height'],'duration':float(j['format']['duration'])}
 @app.get('/')
-def home():return HTMLResponse((ROOT/'index.html').read_text(encoding='utf-8'))
+def home():return HTMLResponse((ROOT/'index.html').read_text(encoding='utf-8'), headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
 attach(app,DATA,state,probe)
 @app.get('/layouts')
 def native_layouts(top:float=.32,aspect:str='vertical',resolution:int=1080):
@@ -80,7 +80,7 @@ def cover_image(id:str):
 @app.get('/assets/{name}')
 def assets(name:str):
  if name not in ('app.js','style.css','extras.js','transcripts.js','vision.js','studio.js','composer.js','composer.css','sidebar.js','library.js','right-bar.js','right-bar.css','editor.js','editor.css','capdraw.js','modes.js','modes.css','campaigns.js','campaigns.css','youtube-feed.js','youtube-feed.css','logo.png','icon-192.png','icon-512.png','favicon.png'):raise HTTPException(404)
- return FileResponse(ROOT/name)
+ return FileResponse(ROOT/name, headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
 @app.get('/logo.png')
 def logo_png():return FileResponse(ROOT/'logo.png')
 @app.get('/favicon.ico')

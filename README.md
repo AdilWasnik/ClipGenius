@@ -17,6 +17,12 @@
 
 ### Quick Start
 
+Clone the repository and enter the project directory:
+```bash
+git clone https://github.com/AdilWasnik/ClipGenius.git
+cd ClipGenius
+```
+
 #### macOS / Linux
 ```bash
 ./run.sh

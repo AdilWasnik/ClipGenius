@@ -117,7 +117,7 @@
       '<option value="pop_in_line">Pop-in line</option><option value="one_by_one">One by one</option><option value="build_up">Build up</option><option value="full_line">Full line</option></select>';
     anchor.parentNode.insertBefore(sel, anchor.nextSibling);
     const up = document.createElement('label');
-    up.className = 'upload'; up.innerHTML = '↑ Import .srt / .ass / .vtt<input id="srt-file" type="file" accept=".srt,.ass,.ssa,.vtt" hidden>';
+    up.className = 'upload'; up.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">upload_file</span> Import .srt / .ass / .vtt<input id="srt-file" type="file" accept=".srt,.ass,.ssa,.vtt" hidden>';
     sel.parentNode.insertBefore(up, sel.nextSibling);const basis=document.createElement('label');basis.textContent='Imported subtitle timing';const basisSelect=document.createElement('select');basisSelect.id='caption-basis';basisSelect.innerHTML='<option value=clip>Relative to this clip</option><option value=source>Full-source timestamps</option>';basis.append(basisSelect);up.after(basis);
     async function importText(text,name){
       const absolute=$('caption-basis')?.value==='source';const j=await request('/captions/parse',{text,start:absolute?(Number($('start').value)||0):0,end:absolute?Number($('end').value):(Number($('end').value)-Number($('start').value))});
@@ -140,7 +140,7 @@
   const row = document.querySelector('.preset-row');
   if (row && !$('find-cam')) {
     const b = document.createElement('button');
-    b.className = 'chip'; b.id = 'find-cam'; b.textContent = '🔎 Find my facecam';
+    b.className = 'chip'; b.id = 'find-cam'; b.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">person_search</span> Find my facecam';
     const none = row.querySelector('[data-preset=none]');
     row.insertBefore(b, none || null);
     const lab = document.createElement('label');
@@ -185,7 +185,7 @@
   // ---- wrap the app.js helpers
   const baseRequest = window.request;
   window.request = function (path, body) {
-    if(body&&(path==='/live/start'||path==='/creators'||/^\/creators\/[^/]+\/layout$/.test(path)))body={...styleFields(),...body};
+    if(body&&path==='/live/start')body={...styleFields(),...body};
     if (path === '/make' && body) {
       const extra = { ...styleFields(), cam_auto: !!($('cam-auto') && $('cam-auto').checked), credit_auto: !!$('st-credit-auto').checked };
       body = { ...extra, ...body, moment_profile:$('moment-profile')?.value||'balanced',focus_brief:$('focus-brief')?.value||'',include_phrases:$('focus-include')?.value||'',exclude_phrases:$('focus-exclude')?.value||'' };
@@ -230,7 +230,7 @@
     $('lv-hook').addEventListener('change', () => { $('lv-hook-wrap').hidden = $('lv-hook').value !== 'custom'; });
     const hype = document.createElement('div');
     hype.className = 'hype';
-    hype.innerHTML = '<div class="hype-top"><b>🔥 Chat hype</b><span id="lv-hype-label" class="muted">waiting…</span></div><div class="meter"><i id="lv-hype-bar"></i></div><small class="muted" id="lv-hype-info"></small>';
+    hype.innerHTML = '<div class="hype-top"><b><span class="material-symbols-rounded fill" aria-hidden="true">local_fire_department</span> Chat hype</b><span id="lv-hype-label" class="muted">waiting…</span></div><div class="meter"><i id="lv-hype-bar"></i></div><small class="muted" id="lv-hype-info"></small>';
     liveBox.insertBefore(hype, liveBox.firstChild);
     const phoneBox = document.createElement('div');
     phoneBox.className = 'import-note'; phoneBox.id = 'phone-box'; phoneBox.textContent = 'Phone access: checking…';
@@ -253,10 +253,10 @@
       try {
         const p = await baseRequest('/phone/status');
         if (!p.enabled) {
-          phoneBox.innerHTML = '📱 <b>Phone access is off.</b> To control live clipping and watch clips on your phone, close ClipGenius and start it with the <b>ClipGenius (phone access)</b> shortcut. Windows may ask once to allow it on private networks: choose Allow.';
+          phoneBox.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">smartphone</span> <b>Phone access is off.</b> To control live clipping and watch clips on your phone, close ClipGenius and start it with the <b>ClipGenius (phone access)</b> shortcut. Windows may ask once to allow it on private networks: choose Allow.';
         } else {
           const urls = p.urls.length ? p.urls.map(u => '<b>' + u + '</b>').join(' or ') : '(no Wi-Fi address found)';
-          phoneBox.innerHTML = '📱 <b>Phone access is on.</b> On a phone connected to the same Wi-Fi open ' + urls + ' and enter the PIN <b style="color:var(--lime);font-size:18px;letter-spacing:.1em">' + p.pin + '</b> <button class="secondary" id="phone-newpin" style="margin-left:8px;padding:4px 10px">New PIN</button>' +
+          phoneBox.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">smartphone</span> <b>Phone access is on.</b> On a phone connected to the same Wi-Fi open ' + urls + ' and enter the PIN <b style="color:var(--lime);font-size:18px;letter-spacing:.1em">' + p.pin + '</b> <button class="secondary" id="phone-newpin" style="margin-left:8px;padding:4px 10px">New PIN</button>' +
             '<br><span class="muted">Only people on your Wi-Fi who know the PIN can open it. Uploads and file tools stay on this PC.</span>';
           $('phone-newpin').onclick = async () => { await baseRequest('/phone/newpin', {}); loadPhone(); };
         }

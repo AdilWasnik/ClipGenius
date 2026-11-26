@@ -63,27 +63,15 @@ const lazyObserver=('IntersectionObserver' in window)?new IntersectionObserver(e
 function ratingMessage(result){return 'Saved · '+result.ratings+' different moment'+(result.ratings===1?'':'s')+' · '+(result.message||(result.fitted?'Preferences updated.':'Rate at least eight different moments.'));}
 function appendVisualReview(parent,review){if(!review?.frames?.length)return;const details=document.createElement('details'),title=document.createElement('summary');title.textContent='AI frame observations';details.append(title);const grid=document.createElement('div');grid.className='vision-grid';review.frames.forEach((frame,index)=>{const figure=document.createElement('figure'),image=document.createElement('img'),caption=document.createElement('figcaption');image.loading='lazy';if(/^\/vision\/frame\/[a-f0-9]{64}\/[012]$/.test(frame.image||''))image.src=frame.image;image.alt='Scene sample '+(index+1);caption.textContent=frame.description;figure.append(image,caption);grid.append(figure);});details.append(grid);parent.append(details);}
 function lazyVideo(v){if(lazyObserver){v.preload='none';lazyObserver.observe(v);}else v.preload='metadata';}
-function campaignButton(game, tags = []) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'mini-btn';
-  const gta = Array.isArray(tags) && tags.some(tag => typeof tag === 'string' && /^gta/i.test(tag));
-  button.dataset.campaignClip = game || (gta ? 'GTA' : '');
-  button.setAttribute('aria-haspopup', 'dialog');
-  button.textContent = 'Submit to a campaign';
-  return button;
-}
-async function refreshLibrary(){const clips=await request('/library');$('library-count').textContent=clips.length;const host=$('library');host.replaceChildren();if(!clips.length){const empty=document.createElement('div');empty.className='empty-library';empty.textContent='Your first clip belongs here. Export a moment to start your library.';host.append(empty);}for(const clip of clips){const card=document.createElement('article');card.className='clip-card';const video=document.createElement('video');video.src='/media/'+clip.id;video.controls=true;lazyVideo(video);const title=document.createElement('h3');title.textContent=clip.title;const meta=document.createElement('p');meta.textContent=(clip.meta.duration||0).toFixed(1)+' seconds · '+(clip.settings.layout||'stack')+' · '+new Date(clip.created*1000).toLocaleDateString();const links=document.createElement('div');links.className='card-links';const download=document.createElement('a');download.href='/media/'+clip.id;download.download='clipgenius-'+clip.id+'.mp4';download.textContent='↓ MP4';links.append(download);if(clip.srt){const sub=document.createElement('a');sub.href='/text/'+clip.id+'/srt';sub.textContent='↓ SRT';links.append(sub);}const edit=document.createElement('button');edit.textContent='Edit clip';edit.onclick=()=>openSavedClip(clip.id).catch(e=>status(e.message));links.append(edit,campaignButton(clip.settings.game_name,clip.settings.hashtags));const sc=document.createElement('div');sc.className='viral lib';if(clip.score!=null){const pt=clip.score_parts||{},bar=(k,n)=>pt[k]==null?'':'<span class="vp"><i>'+n+'</i><em style="width:'+Math.round(Math.max(0,Math.min(25,pt[k]))*4)+'%"></em><small>'+pt[k]+'</small></span>';sc.innerHTML='<b>🔥 Viral '+clip.score+'</b><span class="vr '+(clip.score>=70?'ok':'rv')+'">'+(clip.score>=70?'Ready to post':'Review first')+'</span>'+(Object.keys(pt).length?'<div class="vparts">'+bar('hook','Hook')+bar('engagement','Engagement')+bar('value','Value')+bar('shareability','Share')+'</div>':'');}card.append(video,title,sc,meta,links);appendVisualReview(card,clip.settings.visual_review);if(clip.settings.features)liveStars(card,clip.id);host.append(card);}}
+async function refreshLibrary(){const clips=await request('/library');$('library-count').textContent=clips.length;const host=$('library');host.replaceChildren();if(!clips.length){const empty=document.createElement('div');empty.className='empty-library';empty.textContent='Your first clip belongs here. Export a moment to start your library.';host.append(empty);}for(const clip of clips){const card=document.createElement('article');card.className='clip-card';const video=document.createElement('video');video.src='/media/'+clip.id;video.controls=true;lazyVideo(video);const title=document.createElement('h3');title.textContent=clip.title;const meta=document.createElement('p');meta.textContent=(clip.meta.duration||0).toFixed(1)+' seconds · '+(clip.settings.layout||'stack')+' · '+new Date(clip.created*1000).toLocaleDateString();const links=document.createElement('div');links.className='card-links';const download=document.createElement('a');download.href='/media/'+clip.id;download.download='clipgenius-'+clip.id+'.mp4';download.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">download</span> MP4';links.append(download);if(clip.srt){const sub=document.createElement('a');sub.href='/text/'+clip.id+'/srt';sub.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">subtitles</span> SRT';links.append(sub);}const edit=document.createElement('button');edit.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">edit</span> Edit clip';edit.onclick=()=>openSavedClip(clip.id).catch(e=>status(e.message));links.append(edit);const sc=document.createElement('div');sc.className='viral lib';if(clip.score!=null){const pt=clip.score_parts||{},bar=(k,n)=>pt[k]==null?'':'<span class="vp"><i>'+n+'</i><em style="width:'+Math.round(Math.max(0,Math.min(25,pt[k]))*4)+'%"></em><small>'+pt[k]+'</small></span>';sc.innerHTML='<b><span class="material-symbols-rounded fill" aria-hidden="true">local_fire_department</span> Viral '+clip.score+'</b><span class="vr '+(clip.score>=70?'ok':'rv')+'">'+(clip.score>=70?'Ready to post':'Review first')+'</span>'+(Object.keys(pt).length?'<div class="vparts">'+bar('hook','Hook')+bar('engagement','Engagement')+bar('value','Value')+bar('shareability','Share')+'</div>':'');}card.append(video,title,sc,meta,links);appendVisualReview(card,clip.settings.visual_review);if(clip.settings.features)liveStars(card,clip.id);host.append(card);}}
 document.querySelectorAll('[data-view]').forEach(button => {
   button.onclick = () => {
     const view = button.dataset.view;
     document.querySelectorAll('[data-view]').forEach(nav => nav.classList.toggle('active', nav === button));
-    for (const key of ['editor', 'library', 'youtube', 'creators']) {
+    for (const key of ['editor', 'library']) {
       $(key + '-view').hidden = key !== view;
     }
     if (view === 'library') refreshLibrary().catch(error => status(error.message));
-    if (view === 'creators') loadCreators(true).catch(error => { $('creator-note').textContent = error.message; });
-    if (view === 'youtube' || view === 'creators') window.scrollTo(0, 0);
   };
 });$('refresh-library').onclick=()=>refreshLibrary().catch(e=>status(e.message));
 request('/highlights').then(showHighlights).catch(e=>status(e.message));refreshLibrary().catch(e=>status(e.message));
@@ -94,7 +82,7 @@ function makeStepsMarkup(phase) {
   if (active < 0) return '';
   return '<ol class="make-steps" aria-label="Processing steps">' + steps.map(([, label], index) => {
     const state = index < active ? 'done' : index === active ? 'running' : 'waiting';
-    const icon = state === 'done' ? '&#10003;' : state === 'running' ? '&#9654;' : '&#183;';
+    const icon = state === 'done' ? '<span class="material-symbols-rounded" aria-hidden="true">check</span>' : state === 'running' ? '<span class="material-symbols-rounded fill" aria-hidden="true">play_arrow</span>' : '&#183;';
     return '<li class="' + state + '" aria-label="' + label + ' ' + state + '"><b aria-hidden="true">' + icon + '</b>' + label + '</li>';
   }).join('') + '</ol>';
 }
@@ -202,13 +190,13 @@ async function showMake(resumeId){const url=$('url').value.trim();if(!resumeId&&
   const shown=new Set();
   for(;;){const s=await request('/make/'+job);$('make-status').textContent=(s.stage||s.status)+' · '+Math.round((s.progress||0)*100)+'%';$('make-progress').style.width=Math.max(2,(s.progress||0)*100)+'%';$('make-steps').innerHTML=makeStepsMarkup(s.phase);
    (s.clips||[]).forEach(c=>{if(shown.has(c.file))return;shown.add(c.file);const d=document.createElement('div');d.className='mk';d.dataset.file=c.file;d.dataset.review=clipReady(c)?'ready':'review';
-    if(c.error){d.textContent='Failed: '+c.error.slice(0,120);}else{const vid=document.createElement('video');vid.src='/media/'+c.file;vid.controls=true;vid.preload='metadata';const t=document.createElement('b');t.textContent=c.title;const m=document.createElement('small');m.textContent=Math.round(c.start)+'–'+Math.round(c.end)+'s · score '+c.score+(c.hook?' · "'+c.hook+'"':'');const a=document.createElement('a');a.href='/media/'+c.file;a.download='clipgenius-'+c.file+'.mp4';a.textContent='Download MP4';const rs=document.createElement('small');rs.textContent=[c.reason,c.review_reason].filter(Boolean).join(' · ');if(c.flags&&c.flags.length){rs.append(document.createElement('br'));const fl=document.createElement('span');fl.className='vflag';fl.textContent='Check before posting: '+c.flags.join(', ');rs.append(fl);}const vb=document.createElement('div');vb.className='viral';const ax=c.axes||{};const fmt=v=>v==null?'–':v;vb.title='Viral score is a heuristic: loudness, shouting, what is said, on-screen action and a local AI read. Your star ratings tune it.';const pt=c.parts||{},bar=(k,n)=>pt[k]==null?'':'<span class="vp"><i>'+n+'</i><em style="width:'+Math.round(Math.max(0,Math.min(25,pt[k]))*4)+'%"></em><small>'+pt[k]+'</small></span>';vb.innerHTML='<b>🔥 Viral '+(c.viral??c.score??'–')+'</b><span class="vr '+(clipReady(c)?'ok':'rv')+'">'+(clipReady(c)?'Ready to post':'Review first')+'</span>'+(Object.keys(pt).length?'<div class="vparts">'+bar('hook','Hook')+bar('engagement','Engagement')+bar('value','Value')+bar('shareability','Share')+'</div>':'<span>Energy '+fmt(ax.energy)+'</span><span>Action '+fmt(ax.action)+'</span><span>Words '+fmt(ax.words)+'</span><span>AI '+fmt(ax.ai)+'</span>');
+    if(c.error){d.textContent='Failed: '+c.error.slice(0,120);}else{const vid=document.createElement('video');vid.src='/media/'+c.file;vid.controls=true;vid.preload='metadata';const t=document.createElement('b');t.textContent=c.title;const m=document.createElement('small');m.textContent=Math.round(c.start)+'–'+Math.round(c.end)+'s · score '+c.score+(c.hook?' · "'+c.hook+'"':'');const a=document.createElement('a');a.href='/media/'+c.file;a.download='clipgenius-'+c.file+'.mp4';a.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">download</span> Download MP4';const rs=document.createElement('small');rs.textContent=[c.reason,c.review_reason].filter(Boolean).join(' · ');if(c.flags&&c.flags.length){rs.append(document.createElement('br'));const fl=document.createElement('span');fl.className='vflag';fl.textContent='Check before posting: '+c.flags.join(', ');rs.append(fl);}const vb=document.createElement('div');vb.className='viral';const ax=c.axes||{};const fmt=v=>v==null?'–':v;vb.title='Viral score is a heuristic: loudness, shouting, what is said, on-screen action and a local AI read. Your star ratings tune it.';const pt=c.parts||{},bar=(k,n)=>pt[k]==null?'':'<span class="vp"><i>'+n+'</i><em style="width:'+Math.round(Math.max(0,Math.min(25,pt[k]))*4)+'%"></em><small>'+pt[k]+'</small></span>';vb.innerHTML='<b><span class="material-symbols-rounded fill" aria-hidden="true">local_fire_department</span> Viral '+(c.viral??c.score??'–')+'</b><span class="vr '+(clipReady(c)?'ok':'rv')+'">'+(clipReady(c)?'Ready to post':'Review first')+'</span>'+(Object.keys(pt).length?'<div class="vparts">'+bar('hook','Hook')+bar('engagement','Engagement')+bar('value','Value')+bar('shareability','Share')+'</div>':'<span>Energy '+fmt(ax.energy)+'</span><span>Action '+fmt(ax.action)+'</span><span>Words '+fmt(ax.words)+'</span><span>AI '+fmt(ax.ai)+'</span>');
     const metrics=document.createElement('div');
     metrics.innerHTML=[['Energy',ax.energy],['Action',ax.action],['Words',ax.words],['AI',ax.ai]].map(([label,value])=>'<div class="result-metric"><b>'+label+'</b><span><i style="width:'+Math.max(0,Math.min(100,Number(value)||0))+'%"></i></span><small>'+fmt(value)+'</small></div>').join('');const stars=document.createElement('div');stars.className='stars';stars.title='Rate this clip: it teaches ClipGenius what a good clip is';
-    for(let n=1;n<=5;n++){const sb=document.createElement('button');sb.textContent='★';sb.setAttribute('aria-label','Rate '+n+' star'+(n===1?'':'s'));sb.onclick=async()=>{try{const r=await request('/feedback',{file:c.file,rating:n});[...stars.children].forEach((x,i)=>x.classList.toggle('on',i<n));fb.textContent=ratingMessage(r);}catch(e){fb.textContent=e.message;}};stars.append(sb);}
-    const fb=document.createElement('small');fb.className='fb';fb.textContent='Rate this clip ↑';const edit=document.createElement('button');edit.textContent='Edit clip';edit.onclick=()=>openSavedClip(d.dataset.file).catch(e=>status(e.message));d.append(vid,t,vb,metrics,m,rs,a,edit,campaignButton(s.game,c.hashtags),stars,fb);}
+    for(let n=1;n<=5;n++){const sb=document.createElement('button');sb.innerHTML='<span class="material-symbols-rounded fill" aria-hidden="true">star</span>';sb.setAttribute('aria-label','Rate '+n+' star'+(n===1?'':'s'));sb.onclick=async()=>{try{const r=await request('/feedback',{file:c.file,rating:n});[...stars.children].forEach((x,i)=>x.classList.toggle('on',i<n));fb.textContent=ratingMessage(r);}catch(e){fb.textContent=e.message;}};stars.append(sb);}
+    const fb=document.createElement('small');fb.className='fb';fb.textContent='Rate this clip ↑';const edit=document.createElement('button');edit.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">edit</span> Edit clip';edit.onclick=()=>openSavedClip(d.dataset.file).catch(e=>status(e.message));d.append(vid,t,vb,metrics,m,rs,a,edit,stars,fb);}
     appendVisualReview(d,c.visual_review);$('make-grid').append(d);});
-   if(s.status==='error')throw Error(s.error);if(s.status==='done'){showResultsOverview(s,job);if(!(s.clips||[]).length){$('make-status').textContent=s.stage||'No moments matched. Broaden your filters and try again.';break;}$('make-status').textContent='Done · '+(s.clips||[]).length+' clips in '+s.elapsed_seconds+'s · also in My clips ('+(s.engine||'')+')';if(!$('make-results').querySelector('.star-ask')){const q=document.createElement('div');q.className='star-ask';q.innerHTML='<span class="cg-badge">ClipGenius AI</span> ⚡ 100% Local Processing · No Subscription · Ready to Post';$('make-results').append(q);}break;}
+   if(s.status==='error')throw Error(s.error);if(s.status==='done'){showResultsOverview(s,job);if(!(s.clips||[]).length){$('make-status').textContent=s.stage||'No moments matched. Broaden your filters and try again.';break;}$('make-status').textContent='Done · '+(s.clips||[]).length+' clips in '+s.elapsed_seconds+'s · also in My clips ('+(s.engine||'')+')';if(!$('make-results').querySelector('.star-ask')){const q=document.createElement('div');q.className='star-ask';q.innerHTML='<span class="cg-badge">ClipGenius AI</span> <span class="material-symbols-rounded fill" aria-hidden="true">bolt</span> 100% Local Processing · No Subscription · Ready to Post';$('make-results').append(q);}break;}
    await sleep(1000);}}catch(e){$('make-status').textContent=e.message;}finally{b.disabled=false;refreshResume();}}
 $('make').onclick=()=>showMake(null);
 async function refreshResume(){const job=localStorage.getItem('clipgenius-last-make')||localStorage.getItem('neon-last-make');const button=$('resume-make');button.hidden=true;if(!job)return;try{const row=await request('/make/'+job);button.hidden=!row.can_resume;button.onclick=()=>showMake(job);}catch{}}
@@ -289,16 +277,16 @@ $('edit-top').addEventListener('input',()=>{$('top').value=$('edit-top').value;l
 // ---- Live clipping (record + chat spikes + backdated clips)
 let liveId=null,liveTimer=null;const liveShown=new Set();
 function liveStars(d,file){const stars=document.createElement('div');stars.className='stars';const fb=document.createElement('small');fb.className='fb';fb.textContent='Rate this clip ↑';
- for(let n=1;n<=5;n++){const sb=document.createElement('button');sb.textContent='★';sb.setAttribute('aria-label','Rate '+n+' star'+(n===1?'':'s'));sb.onclick=async()=>{try{const r=await request('/feedback',{file,rating:n});[...stars.children].forEach((x,i)=>x.classList.toggle('on',i<n));fb.textContent=ratingMessage(r);}catch(e){fb.textContent=e.message;}};stars.append(sb);}
+ for(let n=1;n<=5;n++){const sb=document.createElement('button');sb.innerHTML='<span class="material-symbols-rounded fill" aria-hidden="true">star</span>';sb.setAttribute('aria-label','Rate '+n+' star'+(n===1?'':'s'));sb.onclick=async()=>{try{const r=await request('/feedback',{file,rating:n});[...stars.children].forEach((x,i)=>x.classList.toggle('on',i<n));fb.textContent=ratingMessage(r);}catch(e){fb.textContent=e.message;}};stars.append(sb);}
  d.append(stars,fb);}
 function liveCard(c){const d=document.createElement('div');d.className='mk';d.dataset.file=c.file;
  if(c.error){d.textContent='Clip failed: '+c.error;return d;}
  const vid=document.createElement('video');vid.src='/media/'+c.file;vid.controls=true;vid.preload='metadata';
  const t=document.createElement('b');t.textContent=c.title;
- const ax=c.axes||{},f=v=>v==null?'–':v;const vb=document.createElement('div');vb.className='viral';vb.innerHTML='<b>🔥 Viral '+(c.viral??'–')+'</b><span>Chat '+f(ax.chat)+'</span><span>Energy '+f(ax.energy)+'</span><span>Words '+f(ax.words)+'</span><span>AI '+f(ax.ai)+'</span>';
+ const ax=c.axes||{},f=v=>v==null?'–':v;const vb=document.createElement('div');vb.className='viral';vb.innerHTML='<b><span class="material-symbols-rounded fill" aria-hidden="true">local_fire_department</span> Viral '+(c.viral??'–')+'</b><span>Chat '+f(ax.chat)+'</span><span>Energy '+f(ax.energy)+'</span><span>Words '+f(ax.words)+'</span><span>AI '+f(ax.ai)+'</span>';
  const m=document.createElement('small');m.textContent=(c.why||'')+(c.hook?' · "'+c.hook+'"':'');
- const a=document.createElement('a');a.href='/media/'+c.file;a.download='clipgenius-live-'+c.file+'.mp4';a.textContent='Download MP4';
- const edit=document.createElement('button');edit.textContent='Edit clip';edit.onclick=()=>openSavedClip(d.dataset.file).catch(e=>status(e.message));
+ const a=document.createElement('a');a.href='/media/'+c.file;a.download='clipgenius-live-'+c.file+'.mp4';a.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">download</span> Download MP4';
+ const edit=document.createElement('button');edit.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">edit</span> Edit clip';edit.onclick=()=>openSavedClip(d.dataset.file).catch(e=>status(e.message));
  d.append(vid,t,vb,m,a,edit);liveStars(d,c.file);return d;}
 function liveStatus(s){const mm=String(Math.floor((s.elapsed||0)/60)).padStart(2,'0')+':'+String((s.elapsed||0)%60).padStart(2,'0');
  if(s.status==='error')return '⚠ '+(s.error||'Could not start');
@@ -318,86 +306,13 @@ $('live-stop').onclick=async()=>{if(!liveId)return;try{await request('/live/'+li
 // Re-attach to a live session that is already running (after a page reload) so Stop always works.
 (async()=>{try{const r=await request('/live-active');if(r.live){liveId=r.live;$('live-box').hidden=false;$('live-start').disabled=true;liveTimer=setInterval(livePoll,2000);livePoll();}}catch(e){}})();
 
-// ---- Creators: a list of streamers that ClipGenius watches and clips automatically when they go live.
-const creatorOpts=()=>({cam_auto:$('cam-auto')?.checked??!rectEdited,layout:makeLayout(),aspect:$('aspect').value,resolution:Number($('resolution').value),fps:Number($('fps').value),cam:rect.cam,game:rect.game,top:Number($('top').value)/100,caption_style:style,language:$('language').value});
-let creatorSig='';const creatorFeedOpen=new Set();
-function attachLive(id){if(liveId===id)return;liveId=id;liveShown.clear();$('live-grid').replaceChildren();$('live-box').hidden=false;$('live-start').disabled=true;clearInterval(liveTimer);liveTimer=setInterval(livePoll,2000);livePoll();}
-function agoText(t){if(!t)return 'never';const m=Math.round((Date.now()/1000-t)/60);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago';}
-function miniCard(clip){const d=document.createElement('div');d.className='mk';d.dataset.file=clip.id;
- const v=document.createElement('video');v.src='/media/'+clip.id;v.controls=true;lazyVideo(v);
- const t=document.createElement('b');t.textContent=clip.title;const m=document.createElement('small');m.textContent=(clip.meta.duration||0).toFixed(0)+' s · '+new Date(clip.created*1000).toLocaleString();
- const a=document.createElement('a');a.href='/media/'+clip.id;a.download='clipgenius-'+clip.id+'.mp4';a.textContent='Download MP4';
- const e=document.createElement('button');e.textContent='Edit clip';e.onclick=()=>openSavedClip(d.dataset.file).catch(x=>status(x.message));
- d.append(v,t,m,a,e);return d;}
-async function fillCreatorFeed(id,grid){const lib=await request('/library');grid.replaceChildren();const mine=lib.filter(c=>(c.settings||{}).creator===id);
- if(!mine.length){const p=document.createElement('small');p.textContent='No clips yet. They appear here by themselves while this creator is live.';grid.append(p);return;}
- mine.forEach(c=>grid.append(miniCard(c)));}
-function chipFor(c){const s=document.createElement('span');s.className='chip';
- if(c.status==='recording'){s.classList.add('recording');s.textContent='● Recording & clipping';}
- else if(c.status==='live'&&c.paused_until){s.classList.add('wait');s.textContent='LIVE · paused for '+Math.max(1,Math.round((c.paused_until-Date.now()/1000)/60))+' min (switch Auto off and on to resume now)';}
- else if(c.status==='live'&&c.waiting){s.classList.add('live');s.textContent='LIVE · waiting for the current stream to finish';}
- else if(c.status==='live'){s.classList.add('live');s.textContent=c.auto?'LIVE · starting…':'LIVE now (auto is off)';}
- else if(c.status==='unknown'){s.textContent='Checking…';}
- else{s.textContent='Offline · checked '+agoText(c.checked);}
- return s;}
-async function loadCreators(force){
- const r=await request('/creators');
- const sig=JSON.stringify(r.creators.map(c=>[c.id,c.status,c.auto,c.clips,c.waiting,c.session,!!c.paused_until,Math.floor((c.checked||0)/30)]));
- const act=await request('/live-active').catch(()=>({}));if(act.live&&!liveId)attachLive(act.live);
- if(!force&&sig===creatorSig)return;creatorSig=sig;
- const host=$('creator-list');host.replaceChildren();
- if(!r.creators.length){const p=document.createElement('p');p.className='muted';p.textContent='No creators yet. Add a streamer above and ClipGenius will clip them whenever they go live.';host.append(p);return;}
- for(const c of r.creators){
-  const row=document.createElement('div');row.className='creator-row';
-  const top=document.createElement('div');top.className='creator-top';
-  const nm=document.createElement('b');nm.textContent=c.name;const pl=document.createElement('span');pl.className='plat';pl.textContent=c.platform;
-  const lab=document.createElement('label');const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!c.auto;
-  cb.onchange=async()=>{try {await request('/creators/'+c.id+'/auto',{auto:cb.checked});await loadCreators(true);}
-    catch(error){cb.checked=!!c.auto;$('creator-note').textContent=error.message;}};
-  lab.append(cb,document.createTextNode('Auto-clip when live'));top.append(nm,pl,chipFor(c),lab);
-  const acts=document.createElement('div');acts.className='creator-actions';
-  const mk=(txt,fn)=>{const b=document.createElement('button');b.className='secondary';b.textContent=txt;b.onclick=()=>fn(b).catch(e=>{$('creator-note').textContent='⚠ '+e.message;});acts.append(b);return b;};
-  mk('Check now',async b=>{b.disabled=true;$('creator-note').textContent='Checking '+c.name+'…';const x=await request('/creators/'+c.id+'/check',{});$('creator-note').textContent=c.name+(x.live?' is live right now.':' is not live right now.');await loadCreators(true);});
-  mk('Use my current layout',async()=>{await request('/creators/'+c.id+'/layout',creatorOpts());$('creator-note').textContent='Saved your current layout, facecam boxes and caption style for '+c.name+'.';});
-  const cadence=document.createElement('select');
-  cadence.setAttribute('aria-label','Automatic clip interval for '+c.name);
-  [[0,'Chat spikes only'],[2,'Also every 2 min'],[5,'Also every 5 min'],[10,'Also every 10 min'],[15,'Also every 15 min']].forEach(([value,label])=>{
-    const option=document.createElement('option');option.value=value;option.textContent=label;cadence.append(option);
-  });
-  const savedCadence=String(c.opts?.clip_every||0);
-  cadence.value=savedCadence;
-  cadence.onchange=async()=>{
-    try {await request('/creators/'+c.id+'/layout',{clip_every:Number(cadence.value)});$('creator-note').textContent='Clip interval saved for the next live session.';await loadCreators(true);}
-    catch(error){cadence.value=savedCadence;$('creator-note').textContent=error.message;}
-  };
-  acts.append(cadence);
-  if(c.session)mk('Open live view',async()=>{showLiveControls();attachLive(c.session);$('live-box').scrollIntoView({behavior:'smooth'});});
-  mk('Remove',async()=>{if(!confirm('Remove '+c.name+' from your list? Their clips stay in My clips.'))return;await request('/creators/'+c.id+'/remove',{});document.dispatchEvent(new Event('creator-watchlist-change'));await loadCreators(true);});
-  const det=document.createElement('details');det.className='creator-feed';const sm=document.createElement('summary');sm.textContent='Clips from '+c.name+' ('+c.clips+')';const grid=document.createElement('div');grid.className='make-grid';
-  det.append(sm,grid);det.open=creatorFeedOpen.has(c.id);if(det.open)fillCreatorFeed(c.id,grid).catch(()=>{});
-  det.ontoggle=()=>{if(det.open){creatorFeedOpen.add(c.id);fillCreatorFeed(c.id,grid).catch(()=>{});}else creatorFeedOpen.delete(c.id);};
-  row.append(top,acts,det);host.append(row);}
-}
-function showLiveControls() {
-  document.querySelector('[data-view=editor]').click();
-  if ($('live-panel').closest('.pane')?.hidden) {
-    document.querySelector('#adv .tab[data-key=tools]')?.click();
-  }
-}
-async function saveTrackedCreator(url, auto) {
-  await request('/creators', { url, ...creatorOpts(), auto });
-  document.dispatchEvent(new Event('creator-watchlist-change'));
-}
-$('creators-browse').onclick = () => document.querySelector('[data-view=youtube]').click();
-$('creator-add').onclick=async()=>{const url=$('creator-url').value.trim();if(!url){$('creator-note').textContent='Type a Twitch name or paste a channel link first.';return;}
- try{await saveTrackedCreator(url, true);$('creator-url').value='';$('creator-note').textContent='Added. Checking if they are live…';await loadCreators(true);}catch(e){$('creator-note').textContent='⚠ '+e.message;}};
-loadCreators(true).catch(()=>{});setInterval(()=>{if(!document.hidden)loadCreators().catch(()=>{});},8000);
+const clipOpts=()=>({cam_auto:$('cam-auto')?.checked??!rectEdited,layout:makeLayout(),aspect:$('aspect').value,resolution:Number($('resolution').value),fps:Number($('fps').value),cam:rect.cam,game:rect.game,top:Number($('top').value)/100,caption_style:style,language:$('language').value});
 
 $('download-bundle').onclick=async()=>{try{if(!editingClip)throw Error('Open a saved clip first.');status('Preparing this video’s saved clips — no rendering.');const result=await request('/bundles',{file:editingClip,scope:'video'});const link=$('bundle-link');link.href=result.download;link.hidden=false;link.textContent='Download '+result.clips+' clips + subtitles ZIP';status('Bundle ready. Original MP4s, subtitles and post copy are included.');}catch(e){status(e.message);}};
 
 let queuePaused=false;
 async function refreshQueue(){const result=await request('/queue');queuePaused=result.paused;$('queue-pause').textContent=queuePaused?'Resume queue':'Pause queue';const host=$('queue-list');host.replaceChildren();for(const row of result.jobs){const card=document.createElement('div');card.className='queue-item';const title=document.createElement('b');title.textContent=row.kind+' · '+(row.payload.url||row.payload.id||'Saved clip');const detail=document.createElement('small');detail.textContent=row.status+(row.result.stage?' · '+row.result.stage:'')+(row.result.error?' · '+row.result.error:'');card.append(title,detail);if(['error','interrupted','canceled'].includes(row.status)){const button=document.createElement('button');button.textContent='Retry';button.onclick=async()=>{await request('/queue/'+row.id+'/retry',{});refreshQueue();};card.append(button);}if(row.status==='queued'){const button=document.createElement('button');button.textContent='Cancel waiting job';button.onclick=async()=>{await request('/queue/'+row.id+'/cancel',{});refreshQueue();};card.append(button);}host.append(card);}}
-$('queue-add').onclick=async()=>{try{const urls=$('queue-urls').value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!urls.length)throw Error('Paste at least one video link.');for(const url of urls){await request('/queue',{kind:'make',not_before:$('queue-time').value?new Date($('queue-time').value).getTime()/1000:0,payload:{url,count:Number($('count').value),mode:$('mode').value,source_height:Number(($('srcq')||{}).value)||1080,accurate:$('accurate').value,min_len:Number($('minlen').value),max_len:Number($('length').value),...creatorOpts()}});}status(urls.length+' video(s) saved to the local processing queue.');await refreshQueue();}catch(e){status(e.message);}};
+$('queue-add').onclick=async()=>{try{const urls=$('queue-urls').value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!urls.length)throw Error('Paste at least one video link.');for(const url of urls){await request('/queue',{kind:'make',not_before:$('queue-time').value?new Date($('queue-time').value).getTime()/1000:0,payload:{url,count:Number($('count').value),mode:$('mode').value,source_height:Number(($('srcq')||{}).value)||1080,accurate:$('accurate').value,min_len:Number($('minlen').value),max_len:Number($('length').value),...clipOpts()}});}status(urls.length+' video(s) saved to the local processing queue.');await refreshQueue();}catch(e){status(e.message);}};
 $('queue-pause').onclick=async()=>{try{await request('/queue/pause',{paused:!queuePaused});await refreshQueue();}catch(e){status(e.message);}};
 $('queue-refresh').onclick=()=>refreshQueue().catch(e=>status(e.message));
 $('queue-panel').addEventListener('toggle',()=>{if($('queue-panel').open)refreshQueue().catch(e=>status(e.message));});
@@ -421,13 +336,13 @@ const camReset=document.getElementById('cam-reset');if(camReset)camReset.onclick
 })();
 
 // "Cover image" link next to every MP4 download link (cards, library, live clips).
-(()=>{const add=a=>{try{const m=(a.getAttribute('href')||'').match(/^\/media\/([A-Za-z0-9]+)$/);if(!m||!/MP4/.test(a.textContent||'')||a.dataset.cover)return;a.dataset.cover='1';const c=document.createElement('a');c.href='/cover/'+m[1];c.download='clipgenius-cover-'+m[1]+'.jpg';c.textContent='Cover image';c.className=a.className;c.style.marginLeft='10px';a.after(c);}catch(e){}};
+(()=>{const add=a=>{try{const m=(a.getAttribute('href')||'').match(/^\/media\/([A-Za-z0-9]+)$/);if(!m||!/MP4/.test(a.textContent||'')||a.dataset.cover)return;a.dataset.cover='1';const c=document.createElement('a');c.href='/cover/'+m[1];c.download='clipgenius-cover-'+m[1]+'.jpg';c.innerHTML='<span class="material-symbols-rounded" aria-hidden="true">image</span> Cover image';c.className=a.className;c.style.marginLeft='10px';a.after(c);}catch(e){}};
  const scan=r=>{if(r.nodeType!==1)return;if(r.tagName==='A')add(r);r.querySelectorAll&&r.querySelectorAll('a[href^="/media/"]').forEach(add);};
  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true});scan(document.body);})();
 
 // System check line: FFmpeg, encoder, YouTube runtime, AI model, disk. A red item explains the fix when clicked.
 (async()=>{try{const r=await request('/readiness');const box=$('readiness');if(!box)return;box.replaceChildren();
- r.items.forEach(i=>{const s=document.createElement('span');s.className='rd '+(i.ok?'ok':'bad');const l=document.createElement('span');l.textContent=i.label;const b=document.createElement('b');b.textContent=(i.ok?'\u2713 ':'\u26A0 ')+i.detail;s.append(l,b);s.title=i.ok?i.detail:i.fix;if(!i.ok)s.onclick=()=>{status(i.label+': '+i.fix);};box.append(s);});
+ r.items.forEach(i=>{const s=document.createElement('span');s.className='rd '+(i.ok?'ok':'bad');const l=document.createElement('span');l.textContent=i.label;const b=document.createElement('b');b.innerHTML='<span class="material-symbols-rounded'+(i.ok?' fill':'')+'" aria-hidden="true">'+(i.ok?'check_circle':'warning')+'</span> '+i.detail.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));s.append(l,b);s.title=i.ok?i.detail:i.fix;if(!i.ok)s.onclick=()=>{status(i.label+': '+i.fix);};box.append(s);});
 }catch(e){}})();
 
 // Cloud AI panel (optional OpenAI-compatible provider)

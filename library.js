@@ -17,7 +17,7 @@
     const tools = document.createElement('div');
     tools.id = 'lib-tools';
     tools.className = 'lib-tools';
-    tools.innerHTML = '<button type="button" class="mini-btn" id="lib-select">☑ Select clips</button>' +
+    tools.innerHTML = '<button type="button" class="mini-btn" id="lib-select"><span class="material-symbols-rounded" aria-hidden="true">checklist</span> Select clips</button>' +
       '<span id="lib-selecting" hidden class="lib-tools">' +
       '<button type="button" class="mini-btn" id="lib-all">Select all</button><button type="button" class="mini-btn" id="lib-none">Select none</button>' +
       '<label><input type="checkbox" id="lib-sources"> Also delete the source videos</label>' +
@@ -70,7 +70,8 @@
           trash.type = 'button';
           trash.className = 'trash';
           trash.title = 'Delete this clip';
-          trash.textContent = '🗑';
+          trash.setAttribute('aria-label', 'Delete this clip');
+          trash.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">delete</span>';
           trash.onclick = () => remove([id], card.querySelector('h3') ? card.querySelector('h3').textContent : 'this clip');
           links.append(trash);
         }

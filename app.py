@@ -79,12 +79,14 @@ def cover_image(id:str):
  return FileResponse(path,media_type='image/jpeg')
 @app.get('/assets/{name}')
 def assets(name:str):
- if name not in ('app.js','style.css','extras.js','transcripts.js','vision.js','studio.js','composer.js','composer.css','sidebar.js','library.js','right-bar.js','right-bar.css','editor.js','editor.css','capdraw.js','modes.js','modes.css','campaigns.js','campaigns.css','youtube-feed.js','youtube-feed.css','logo.png','icon-192.png','icon-512.png','favicon.png'):raise HTTPException(404)
+ if name not in ('app.js','style.css','extras.js','transcripts.js','vision.js','studio.js','composer.js','composer.css','sidebar.js','library.js','right-bar.js','right-bar.css','editor.js','editor.css','capdraw.js','modes.js','modes.css','logo.png','favicon.png'):raise HTTPException(404)
  return FileResponse(ROOT/name, headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
 @app.get('/logo.png')
-def logo_png():return FileResponse(ROOT/'logo.png')
+def logo_png():return FileResponse(ROOT/'logo.png', headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
 @app.get('/favicon.ico')
-def favicon_ico():return FileResponse(ROOT/'favicon.png')
+def favicon_ico():return FileResponse(ROOT/'favicon.png', headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
+@app.get('/favicon.png')
+def favicon_png():return FileResponse(ROOT/'favicon.png', headers={'Cache-Control': 'no-cache, no-store, must-revalidate'})
 @app.get('/text/{id}/{kind}')
 def text_file(id:str,kind:str):
  if not id.isalnum() or kind not in ('srt','ass','vtt'):raise HTTPException(404)
@@ -427,7 +429,6 @@ def start_make(b, previous=None):
    face_model=vision.model() if flags['facecam_check'] or react else None
    from concurrent.futures import ThreadPoolExecutor as _TP
    W=curation.profile_weights(learn.load_weights(DATA),profile)
-   performance=social.duration_preferences(DATA)
    def lowres_section(u,c):
     """A tiny 144p copy of just this candidate, only for looking at the action (motion, flashes, light strobes)."""
     from yt_dlp.utils import download_range_func
@@ -465,7 +466,7 @@ def start_make(b, previous=None):
        old=c['features'].get('llm');c['features']['llm']=judged['score']/10 if old is None else .7*old+.3*judged['score']/10
        if focus_brief:c['focus_match']=judged['focus_match']
       except Exception as error:c['visual_error']=str(error)[-160:]
-     current=curation.focus_rank(learn.score(c['features'],W),c.get('focus_match'))+performance.get(int((c['end']-c['start'])//15),0)+c.get('direction_boost',0)
+     current=curation.focus_rank(learn.score(c['features'],W),c.get('focus_match'))+c.get('direction_boost',0)
      if c.get('head_to_head') is not None:current=.7*current+.3*c['head_to_head']
      c['rank']=max(0,min(1,current));c['score']=round(c['rank']*100)
      cues=[n for n,k,t in (('shouting','shout',.6),('loud jump','loud',.6),('exclamations','words',.5),('fast motion','motion',.7),('explosion/flash','flash',.5),('police-light flicker','strobe',.5)) if (c['features'].get(k) or 0)>=t]
@@ -804,20 +805,6 @@ def live_stop(lid:str):
  if lid not in LIVE:raise HTTPException(404,'Live session not found.')
  LIVE[lid].stop();return {'ok':True}
 
-@app.get('/supporters')
-def supporters():
- """Names shown under 'Our supporters' (supporters.json). Only plain short text is served; add a person only with their OK."""
- try:raw=json.loads((ROOT/'supporters.json').read_text(encoding='utf-8')).get('supporters',[])
- except (OSError,ValueError,AttributeError):raw=[]
- out=[]
- for r in raw if isinstance(raw,list) else []:
-  if not isinstance(r,dict):continue
-  name=' '.join(str(r.get('name') or '').split())[:40]
-  if not name:continue
-  amount=' '.join(str(r.get('amount') or '').split())[:14]
-  out.append({'name':name,'amount':amount})
- return {'supporters':out[:300]}
-
 @app.post('/feedback')
 def feedback(b:dict):
  """A star rating (1-5) for a finished clip. Stored locally; the scoring weights are refitted from the ratings (learn.py)."""
@@ -972,10 +959,7 @@ import editor_export;editor_export.attach(app,DATA,probe)
 bundles.attach(app,DATA)
 
 import jobs
-import social, social_accounts
-social_accounts.attach(app)
-send_post=social.attach(app,DATA,state,probe)
-jobs.attach(app,DATA,state,{'make':make,'export':export,'transcribe':caption_job,'social':send_post},resume_make)
+jobs.attach(app,DATA,state,{'make':make,'export':export,'transcribe':caption_job},resume_make)
 
 styling.attach(app,DATA)
 import phone
@@ -988,17 +972,12 @@ brands.attach(app,DATA)
 import modes as _modes;_modes.attach(app)
 import shortcut;shortcut.attach(app)
 import automation as _automation;_automation.attach(app,DATA,probe)
-import campaigns;campaigns.attach(app,DATA)
-import youtube_feed;youtube_feed.attach(app,DATA)
 glossary.attach(app,DATA)
 hooks.attach(app)
 import transcripts
 transcripts.attach(app,DATA,state,probe,transcribe)
 import vision
 vision.attach(app,DATA,state,probe)
-
-import creators
-creators.attach(app,DATA,LIVE,lambda target,opts,cid:start_live(target,opts,cid))
 
 import timeline
 timeline.attach(app,DATA,state,probe)

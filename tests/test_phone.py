@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 ROOT = Path(__file__).resolve().parent.parent
-PHONE_ROUTES = ('/live-active', '/library', '/creators')
+PHONE_ROUTES = ('/live-active', '/library')
 
 
 class PhoneGate(unittest.TestCase):

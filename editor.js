@@ -24,10 +24,10 @@
   };
   const LAYOUTS = [['stack', 'Face + game'], ['bottom', 'Game + face'], ['blur', 'Blurred'], ['fill', 'Fill'], ['game', 'Game only'], ['pip_tl', 'Cam ↖'], ['pip_tr', 'Cam ↗'], ['pip_bl', 'Cam ↙'], ['pip_br', 'Cam ↘'], ['circle', 'Circle'], ['side', 'Side by side']];
   function layoutSvg(id) {
-    const g = '#4a4a5a', c = '#ff3d6e';
+    const g = '#3a3a3c', c = '#0a84ff';
     const r = (x, y, w, h, f) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="' + f + '"/>';
     const body = {
-      stack: r(0, 0, 36, 22, c) + r(0, 22, 36, 42, g), bottom: r(0, 0, 36, 42, g) + r(0, 42, 36, 22, c), blur: r(0, 0, 36, 64, '#2a2a38') + r(0, 18, 36, 28, g), fill: r(0, 0, 36, 64, g), game: r(0, 0, 36, 64, g) + '<text x="18" y="36" font-size="9" fill="#fff" text-anchor="middle">🎮</text>',
+      stack: r(0, 0, 36, 22, c) + r(0, 22, 36, 42, g), bottom: r(0, 0, 36, 42, g) + r(0, 42, 36, 22, c), blur: r(0, 0, 36, 64, '#2a2a38') + r(0, 18, 36, 28, g), fill: r(0, 0, 36, 64, g), game: r(0, 0, 36, 64, g),
       pip_tl: r(0, 0, 36, 64, g) + r(3, 3, 14, 14, c), pip_tr: r(0, 0, 36, 64, g) + r(19, 3, 14, 14, c), pip_bl: r(0, 0, 36, 64, g) + r(3, 47, 14, 14, c), pip_br: r(0, 0, 36, 64, g) + r(19, 47, 14, 14, c),
       circle: r(0, 0, 36, 64, g) + '<circle cx="18" cy="48" r="9" fill="' + c + '"/>', side: r(0, 0, 18, 64, c) + r(18, 0, 18, 64, g),
     }[id] || r(0, 0, 36, 64, g);
@@ -82,19 +82,21 @@
   const note = t => { const n = $('ed-note'); if (n) n.textContent = t || ''; };
   const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0') + '.' + String(Math.floor((s % 1) * 10));
 
+  const playIcon = on => '<span class="material-symbols-rounded fill" aria-hidden="true">' + (on ? 'pause' : 'play_arrow') + '</span>';
+
   // ---------- page skeleton
   function build() {
     const sec = document.createElement('section');
     sec.id = 'clip-editor-view'; sec.hidden = true;
     sec.innerHTML = '<section class="library-heading"><h2>Clip editor</h2><span class="ed-note" id="ed-note" role="status"></span></section>' +
-      '<div class="ed-grid"><aside class="ed-list panel"><button type="button" class="mini-btn" id="ed-sort">Sort: newest</button><div id="ed-list"></div></aside>' +
+      '<div class="ed-grid"><aside class="ed-list panel"><button type="button" class="mini-btn" id="ed-sort"><span class="material-symbols-rounded" aria-hidden="true">sort</span> Sort: newest</button><div id="ed-list"></div></aside>' +
       '<div class="ed-center panel"><div class="ed-stage" id="ed-stage"><canvas id="ed-canvas" width="540" height="960"></canvas><div class="ed-safe" id="ed-safe" hidden></div><div class="ed-cap" id="ed-cap" title="Drag up or down to move the captions"></div></div>' +
-      '<div class="ed-bar"><button class="mini-btn primary" id="ed-play" aria-label="Play or pause">▶</button><span id="ed-clock" class="muted">0:00.0 / 0:00.0</span><button class="mini-btn" id="ed-undo" disabled>↶</button><button class="mini-btn" id="ed-redo" disabled>↷</button>' +
+      '<div class="ed-bar"><button class="mini-btn primary" id="ed-play" aria-label="Play or pause">' + playIcon(false) + '</button><span id="ed-clock" class="muted">0:00.0 / 0:00.0</span><button class="mini-btn" id="ed-undo" aria-label="Undo" disabled><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button class="mini-btn" id="ed-redo" aria-label="Redo" disabled><span class="material-symbols-rounded" aria-hidden="true">redo</span></button>' +
       '<label class="ed-chk"><input type="checkbox" id="ed-safe-on"> Safe area</label></div></div>' +
       '<div class="ed-side panel"><div class="ed-tabs" id="ed-tabs"></div><div class="ed-pane" id="ed-pane"></div>' +
       '<div class="ed-export"><label class="ed-chk"><input type="radio" name="ed-scope" value="one" checked> Only this clip</label><label class="ed-chk"><input type="radio" name="ed-scope" value="video"> All clips of this video <small id="ed-count"></small></label>' +
       '<button class="mini-btn primary" id="ed-export" disabled>Export changes</button><button class="mini-btn" id="ed-reset" disabled>Reset</button><button class="mini-btn" id="ed-export-tracks" hidden>Download editing tracks</button><button class="mini-btn" id="ed-reaction-gif" disabled>Reaction GIF</button></div></div></div>' +
-      '<div class="panel ed-tl"><div class="ed-tools"><button type="button" class="mini-btn" id="ed-split">✂ Split</button><button type="button" class="mini-btn" data-pa="dup">⧉ Duplicate</button><button type="button" class="mini-btn" data-pa="left">◀</button><button type="button" class="mini-btn" data-pa="right">▶</button><button type="button" class="mini-btn warn" data-pa="drop">🗑 Remove</button><span class="muted" id="ed-tl-note"></span></div>' +
+      '<div class="panel ed-tl"><div class="ed-tools"><button type="button" class="mini-btn" id="ed-split"><span class="material-symbols-rounded" aria-hidden="true">content_cut</span> Split</button><button type="button" class="mini-btn" data-pa="dup"><span class="material-symbols-rounded" aria-hidden="true">content_copy</span> Duplicate</button><button type="button" class="mini-btn" data-pa="left" aria-label="Move left"><span class="material-symbols-rounded" aria-hidden="true">chevron_left</span></button><button type="button" class="mini-btn" data-pa="right" aria-label="Move right"><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span></button><button type="button" class="mini-btn warn" data-pa="drop"><span class="material-symbols-rounded" aria-hidden="true">delete</span> Remove</button><span class="muted" id="ed-tl-note"></span></div>' +
       '<div class="ed-tools ed-timing-tools"><label class="ed-chk"><input type="checkbox" id="ed-snap" checked> Snap to words</label><button type="button" id="ed-in" class="mini-btn">Set in</button><button type="button" id="ed-out" class="mini-btn">Set out</button></div>' +
       '<div class="ed-track"><span>Clip</span><div class="ed-lane" id="ed-lane"></div></div><div class="ed-track"><span>Words</span><div class="ed-lane ed-capl" id="ed-capl"></div></div></div>' +
       '<div class="panel ed-words"><h3>Transcript</h3><div id="ed-fixask" class="ed-fixask" hidden></div><div id="ed-words" class="ed-wordlist"></div>' +
@@ -102,9 +104,9 @@
       '<div class="ed-gloss-add"><input id="ed-gl-from" placeholder="Written as (pulis)" maxlength="60"><span>→</span><input id="ed-gl-to" placeholder="Should be (police)" maxlength="60"><button type="button" class="mini-btn" id="ed-gl-add">Add</button></div></div></div>' +
       '<video id="ed-src" preload="auto" playsinline style="display:none"></video>';
     $('library-view').after(sec);
-    $('ed-tabs').innerHTML = [['captions', 'Captions'], ['framing', 'Framing'], ['audio', 'Audio'], ['effects', 'Effects']].map(([k, n]) => '<button type="button" data-tab="' + k + '">' + n + '</button>').join('');
+    $('ed-tabs').innerHTML = [['captions', 'subtitles', 'Captions'], ['framing', 'crop', 'Framing'], ['audio', 'volume_up', 'Audio'], ['effects', 'auto_fix_high', 'Effects']].map(([k, ic, n]) => '<button type="button" data-tab="' + k + '"><span class="material-symbols-rounded" aria-hidden="true">' + ic + '</span> ' + n + '</button>').join('');
     $('ed-tabs').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; drawPane(); paint(); } };
-    $('ed-sort').onclick = () => { sortBest = !sortBest; $('ed-sort').textContent = 'Sort: ' + (sortBest ? 'best first' : 'newest'); loadList(); };
+    $('ed-sort').onclick = () => { sortBest = !sortBest; $('ed-sort').innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">sort</span> Sort: ' + (sortBest ? 'best first' : 'newest'); loadList(); };
     $('ed-undo').onclick = () => jump(undo, redo); $('ed-redo').onclick = () => jump(redo, undo);
     $('ed-reset').onclick = () => commit(() => { st = JSON.parse(original); });
     $('ed-safe-on').onchange = e => { $('ed-safe').hidden = !e.target.checked; };
@@ -180,7 +182,7 @@
     original = snap(); undo = []; redo = []; sel = 0;
     try { const d = localStorage.getItem(draftKey()); if (d) { const dd = JSON.parse(d); if (dd && Array.isArray(dd.pieces) && dd.cam && confirm('Restore your unsaved changes for this clip?')) { st = dd; } else if (!dd || !Array.isArray(dd.pieces) || !dd.cam) localStorage.removeItem(draftKey()); } } catch (e) { /* ignore */ }
     const v = $('ed-src'); v.src = '/media/' + base.id; v.muted = false;
-    vt = 0; playing = false; curPiece = 0; $('ed-play').textContent = '▶';
+    vt = 0; playing = false; curPiece = 0; $('ed-play').innerHTML = playIcon(false);
     $('ed-count').textContent = info.video_clips > 1 ? '(' + info.video_clips + ')' : '';
     note(''); loadList();
     v.onloadeddata = () => { seekTo(0); afterChange(); };
@@ -196,15 +198,15 @@
   }
   function togglePlay() {
     if (!st) return; const v = $('ed-src');
-    if (playing) { playing = false; v.pause(); $('ed-play').textContent = '▶'; return; }
+    if (playing) { playing = false; v.pause(); $('ed-play').innerHTML = playIcon(false); return; }
     if (vt >= length() - 0.05) seekTo(0);
-    playing = true; v.volume = clamp(st.voice_volume, 0, 1); v.play().catch(() => { playing = false; }); $('ed-play').textContent = '❚❚'; loop();
+    playing = true; v.volume = clamp(st.voice_volume, 0, 1); v.play().catch(() => { playing = false; }); $('ed-play').innerHTML = playIcon(true); loop();
   }
   function loop() {
     if (!playing || !st) return; const v = $('ed-src'), p = st.pieces[curPiece];
     if (v.currentTime >= p.end - 0.03) {
       if (curPiece < st.pieces.length - 1) { curPiece++; v.currentTime = st.pieces[curPiece].start; }
-      else { playing = false; v.pause(); $('ed-play').textContent = '▶'; vt = length(); paint(); markPlayhead(); return; }
+      else { playing = false; v.pause(); $('ed-play').innerHTML = playIcon(false); vt = length(); paint(); markPlayhead(); return; }
     }
     vt = outTime(curPiece, v.currentTime); paint(); markPlayhead(); requestAnimationFrame(loop);
   }
@@ -395,7 +397,7 @@
         '<h4>Export for</h4><div class="ed-row">' + PRESETS.map(([k, n]) => chip('data-preset="' + k + '"', n, st.preset === k)).join('') + '</div><p class="muted">' + presetNote() + '</p>';
       drawFrame();
     } else if (tab === 'audio') {
-      pane.innerHTML = '<h4>Volume</h4><div class="ed-row">' + VOLUMES.map(([n, v]) => chip('data-vol="' + v + '"', (v === 0 ? '🔇 ' : '🔊 ') + n, st.voice_volume === v)).join('') + '</div>' +
+      pane.innerHTML = '<h4>Volume</h4><div class="ed-row">' + VOLUMES.map(([n, v]) => chip('data-vol="' + v + '"', '<span class="material-symbols-rounded" aria-hidden="true">' + (v === 0 ? 'volume_off' : 'volume_up') + '</span> ' + n, st.voice_volume === v)).join('') + '</div>' +
         '<label class="ed-chk"><input type="checkbox" data-key="fade_inout"' + (st.fade_inout ? ' checked' : '') + '> Fade in and out</label>';
     } else {
       pane.innerHTML = '<h4>At the playhead</h4><div class="ed-row">' +
@@ -539,7 +541,7 @@
   function drawTranscript() {
     const box = $('ed-words'); if (!st) { box.innerHTML = ''; return; }
     const rw = rel(st.pieces);
-    box.innerHTML = rw.length ? rw.map(w => '<span class="w"><button type="button" class="seek" data-seek="' + w.start.toFixed(2) + '" title="Jump here">▸</button><input value="' + esc(w.text) + '" data-word="' + w.i + '" size="' + Math.max(2, w.text.length) + '" aria-label="Word"><button type="button" class="del" data-del="' + w.i + '" title="Remove caption word only">✕</button><button type="button" class="cut-word" data-cut-word="' + w.i + '" data-piece="' + w.piece + '" title="Cut this word from the video" aria-label="Cut ' + esc(w.text) + ' from video">✂</button></span>').join('') : '<p class="muted">This clip has no saved transcript.</p>';
+    box.innerHTML = rw.length ? rw.map(w => '<span class="w"><button type="button" class="seek" data-seek="' + w.start.toFixed(2) + '" title="Jump here"><span class="material-symbols-rounded fill" aria-hidden="true">play_arrow</span></button><input value="' + esc(w.text) + '" data-word="' + w.i + '" size="' + Math.max(2, w.text.length) + '" aria-label="Word"><button type="button" class="del" data-del="' + w.i + '" title="Remove caption word only"><span class="material-symbols-rounded" aria-hidden="true">close</span></button><button type="button" class="cut-word" data-cut-word="' + w.i + '" data-piece="' + w.piece + '" title="Cut this word from the video" aria-label="Cut ' + esc(w.text) + ' from video"><span class="material-symbols-rounded" aria-hidden="true">content_cut</span></button></span>').join('') : '<p class="muted">This clip has no saved transcript.</p>';
   }
 
   function updateButtons() {
@@ -629,8 +631,8 @@
   function init() {
     if ($('clip-editor-view')) return; const nav = document.querySelector('[data-view=library]'); if (!nav) return;
     build();
-    const btn = document.createElement('button'); btn.className = 'nav'; btn.type = 'button'; btn.id = 'nav-clip-editor'; btn.innerHTML = '✎ &nbsp; Editor'; nav.after(btn);
-    const views = ['editor-view', 'library-view', 'youtube-view', 'creators-view', 'clip-editor-view'];
+    const btn = document.createElement('button'); btn.className = 'nav'; btn.type = 'button'; btn.id = 'nav-clip-editor'; btn.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">tune</span><span>Editor</span>'; nav.after(btn);
+    const views = ['editor-view', 'library-view', 'clip-editor-view'];
     btn.onclick = () => { document.querySelectorAll('.nav').forEach(x => x.classList.toggle('active', x === btn)); views.forEach(v => { const el = $(v); if (el) el.hidden = v !== 'clip-editor-view'; }); show(); };
     document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { $('clip-editor-view').hidden = true; btn.classList.remove('active'); if (playing) togglePlay(); }));
     window.openInEditor = id => { btn.click(); setTimeout(() => openClip(id), 50); };

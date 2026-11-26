@@ -25,7 +25,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 LOCAL = ('127.0.0.1', '::1', 'localhost')
 ALLOW = ('/m', '/manifest.webmanifest', '/phone-icon.svg', '/live', '/live-active', '/library', '/media', '/text', '/make', '/status',
-         '/clips', '/feedback', '/creators', '/healthz', '/assets')
+         '/clips', '/feedback', '/healthz', '/assets')
 MAX_TRIES, LOCK_SECONDS = 5, 600
 COOKIE = 'nc_phone'
 
@@ -152,14 +152,14 @@ def attach(app, data, root):
     @app.get('/manifest.webmanifest')
     def manifest():
         return JSONResponse({'name': 'ClipGenius', 'short_name': 'ClipGenius', 'start_url': '/m', 'scope': '/', 'display': 'standalone',
-                             'background_color': '#09090b', 'theme_color': '#6366f1',
-                             'icons': [{'src': '/assets/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
-                                       {'src': '/assets/icon-512.png', 'sizes': '512x512', 'type': 'image/png'}]},
+                             'background_color': '#000000', 'theme_color': '#000000',
+                             'icons': [{'src': '/assets/favicon.png', 'sizes': '192x192', 'type': 'image/png'},
+                                       {'src': '/assets/favicon.png', 'sizes': '512x512', 'type': 'image/png'}]},
                             media_type='application/manifest+json')
 
     @app.get('/phone-icon.svg')
     def icon():
-        svg = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#0b0912'/>"
-               "<text x='8' y='46' font-family='Impact,Arial Black' font-size='38' fill='#ff4ba5'>N</text>"
-               "<path d='M34 40 L52 22 M40 22 H52 V34' stroke='#58e8f7' stroke-width='5' fill='none' stroke-linecap='round'/></svg>")
+        svg = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#000000'/>"
+               "<text x='8' y='46' font-family='-apple-system,sans-serif' font-weight='800' font-size='38' fill='#0a84ff'>C</text>"
+               "<path d='M34 40 L52 22 M40 22 H52 V34' stroke='#64d2ff' stroke-width='5' fill='none' stroke-linecap='round'/></svg>")
         return Response(svg, media_type='image/svg+xml')

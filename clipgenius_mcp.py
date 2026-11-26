@@ -2,7 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["mcp>=1.12,<2"]
 # ///
-"""Local stdio MCP connector. Run with uv run --script neon_mcp.py."""
+"""Local stdio MCP connector. Run with uv run --script clipgenius_mcp.py."""
 import json
 import os
 import re
@@ -14,14 +14,14 @@ from urllib.request import Request, urlopen
 
 from mcp.server.fastmcp import FastMCP
 
-server = FastMCP("NeonClipping")
-port = int(os.environ.get("NEONCLIPPING_PORT", "8770"))
+server = FastMCP("ClipGenius")
+port = int(os.environ.get("CLIPGENIUS_PORT", "8770"))
 base = f"http://127.0.0.1:{port}"
 
 
 def identifier(value: str) -> str:
     if not re.fullmatch(r"[a-f0-9]{32}", value):
-        raise ValueError("Expected a NeonClipping job or clip ID.")
+        raise ValueError("Expected a ClipGenius job or clip ID.")
     return value
 
 
@@ -34,7 +34,7 @@ def api(path: str, body=None):
     except HTTPError as error:
         raise ValueError(error.read(2048).decode(errors="replace")) from error
     except URLError as error:
-        raise RuntimeError(f"Start the NeonClipping app on port {port}.") from error
+        raise RuntimeError(f"Start the ClipGenius app on port {port}.") from error
 
 
 @server.tool()
@@ -81,11 +81,11 @@ def export_clip(clip: str, aspect: str = "vertical", resolution: int = 1080) -> 
 
 @server.tool()
 def download_clip(clip: str) -> str:
-    """Save an exported library clip into Downloads/NeonClipping and return its path."""
+    """Save an exported library clip into Downloads/ClipGenius and return its path."""
     clip = identifier(clip)
     if not any(item["id"] == clip for item in api("/library")):
         raise ValueError("Choose an exported clip from list_clips.")
-    folder = Path.home() / "Downloads" / "NeonClipping"
+    folder = Path.home() / "Downloads" / "ClipGenius"
     folder.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=folder, delete=False) as temp:
         staged = Path(temp.name)

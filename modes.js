@@ -5,9 +5,9 @@
   const $ = id => document.getElementById(id);
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const MODE_INFO = {
-    fast: ['⚡', 'Fast', 'About 2-3 min. Every PC. Most features on.'],
-    balanced: ['⚖', 'Balanced', 'A bit slower. AI fixes spellings and reads the whole talk.'],
-    deep: ['🔬', 'Best', 'Slowest. Full video scan and the fairest comparing.'],
+    fast: ['bolt', 'Fast', 'About 2-3 min. Every PC. Most features on.'],
+    balanced: ['balance', 'Balanced', 'A bit slower. AI fixes spellings and reads the whole talk.'],
+    deep: ['science', 'Best', 'Slowest. Full video scan and the fairest comparing.'],
   };
   const LOAD = { light: ['Light', 'l'], medium: ['Medium', 'm'], heavy: ['Heavy', 'h'] };
   let cat = null, own = {};
@@ -17,18 +17,18 @@
   const isOn = f => (f.key in own) ? own[f.key] : f.modes.includes(mode());
   let panelOpen = false;          // closed by default: the home screen stays calm
   const whatLabel = () => { const n = Object.keys(own).length, on = cat ? cat.features.filter(isOn).length : 0;
-    return '☰ What runs in ' + esc((MODE_INFO[mode()] || [, mode()])[1]) + ' <small>' + on + ' on</small>' + (n ? ' <i>' + n + ' changed</i>' : '') + ' <b>' + (panelOpen ? '▴' : '▾') + '</b>'; };
+    return '<span class="material-symbols-rounded" aria-hidden="true">tune</span> What runs in ' + esc((MODE_INFO[mode()] || [, mode()])[1]) + ' <small>' + on + ' on</small>' + (n ? ' <i>' + n + ' changed</i>' : '') + ' <span class="material-symbols-rounded" aria-hidden="true">' + (panelOpen ? 'expand_less' : 'expand_more') + '</span>'; };
 
   function ensureBalancedOption() {
     const sel = $('mode'); if (!sel || [...sel.options].some(o => o.value === 'balanced')) return;
-    const o = document.createElement('option'); o.value = 'balanced'; o.textContent = '⚖ Balanced'; sel.insertBefore(o, sel.options[1] || null);
-    sel.options[0].textContent = '⚡ Fast'; if (sel.options[2]) sel.options[2].textContent = '🔬 Best';
+    const o = document.createElement('option'); o.value = 'balanced'; o.textContent = 'Balanced'; sel.insertBefore(o, sel.options[1] || null);
+    sel.options[0].textContent = 'Fast'; if (sel.options[2]) sel.options[2].textContent = 'Best';
   }
 
   function draw() {
     const box = $('mode-tiles'); if (!box || !cat) return;
     const m = mode(), extra = Object.keys(own).length;
-    box.innerHTML = '<div class="mt-row">' + cat.modes.map(x => { const [ic, name, line] = MODE_INFO[x.key] || ['', x.label, '']; return '<button type="button" class="mt' + (x.key === m ? ' on' : '') + '" data-mode="' + x.key + '"><span class="mt-ic">' + ic + '</span><b>' + esc(name) + '</b><small>' + esc(line) + '</small></button>'; }).join('') +
+    box.innerHTML = '<div class="mt-row">' + cat.modes.map(x => { const [ic, name, line] = MODE_INFO[x.key] || ['bolt', x.label, '']; return '<button type="button" class="mt' + (x.key === m ? ' on' : '') + '" data-mode="' + x.key + '"><span class="mt-ic"><span class="material-symbols-rounded' + (x.key === 'fast' ? ' fill' : '') + '" aria-hidden="true">' + ic + '</span></span><b>' + esc(name) + '</b><small>' + esc(line) + '</small></button>'; }).join('') +
       '</div><div class="mt-foot"><button type="button" class="mt-link what' + (panelOpen ? ' open' : '') + '" id="mt-what" aria-expanded="' + panelOpen + '">' + whatLabel() + '</button></div>' +
       '<div class="mt-panel" id="mt-panel"' + (panelOpen ? '' : ' hidden') + '></div>';
     if (panelOpen) drawPanel();
@@ -47,8 +47,8 @@
   function settingsDialog(tab) {
     let d = $('key-dialog');
     if (!d) { d = document.createElement('dialog'); d.id = 'key-dialog'; d.className = 'key-dialog'; document.body.append(d); }
-    d.innerHTML = '<div class="kd-head"><b>⚙ Settings</b><button type="button" class="mt-link" data-kd="close">✕</button></div>' +
-      '<div class="st-tabs"><button type="button" data-st="key"' + (tab !== 'shortcut' ? ' class="on"' : '') + '>🔑 AI key (free)</button><button type="button" data-st="shortcut"' + (tab === 'shortcut' ? ' class="on"' : '') + '>📌 Shortcut</button><button type="button" data-st="auto"' + (tab === 'auto' ? ' class="on"' : '') + '>⚙ Automation</button></div><div id="st-body"></div>';
+    d.innerHTML = '<div class="kd-head"><b><span class="material-symbols-rounded" aria-hidden="true">settings</span> Settings</b><button type="button" class="mt-link" data-kd="close" aria-label="Close"><span class="material-symbols-rounded" aria-hidden="true">close</span></button></div>' +
+      '<div class="st-tabs"><button type="button" data-st="key"' + (tab !== 'shortcut' ? ' class="on"' : '') + '><span class="material-symbols-rounded" aria-hidden="true">key</span> AI key (free)</button><button type="button" data-st="shortcut"' + (tab === 'shortcut' ? ' class="on"' : '') + '><span class="material-symbols-rounded" aria-hidden="true">desktop_windows</span> Shortcut</button><button type="button" data-st="auto"' + (tab === 'auto' ? ' class="on"' : '') + '><span class="material-symbols-rounded" aria-hidden="true">smart_toy</span> Automation</button></div><div id="st-body"></div>';
     if (!d.open) d.showModal();
     if (tab === 'shortcut') shortcutPane(); else if (tab === 'auto') autoPane(); else keyDialog();
   }
@@ -56,14 +56,14 @@
   async function autoPane() {
     const b = $('st-body'); b.innerHTML = 'Loading…'; let s = {};
     try { s = await request('/automation'); } catch (e) { b.textContent = e.message; return; }
-    b.innerHTML = '<div class="au-card"><label class="au-sw"><input type="checkbox" id="au-on"' + (s.watch_on ? ' checked' : '') + '><b>📂 Watch a folder</b></label>' +
+    b.innerHTML = '<div class="au-card"><label class="au-sw"><input type="checkbox" id="au-on"' + (s.watch_on ? ' checked' : '') + '><b><span class="material-symbols-rounded" aria-hidden="true">folder_open</span> Watch a folder</b></label>' +
       '<small>Drop a finished recording into this folder and clips are made by themselves, even overnight. Status: <b id="au-status">' + esc(s.status || 'off') + '</b>' + (s.last ? ' · last: ' + esc(s.last) : '') + '</small>' +
       '<input id="au-folder" placeholder="Full folder path, e.g. D:\Recordings" value="' + esc(s.watch_folder || '') + '">' +
       '<div class="kd-row"><label>Clips per video <input id="au-count" type="number" min="1" max="12" value="' + (s.watch_count || 4) + '" style="width:70px"></label>' +
       '<label>Mode <select id="au-mode"><option value="fast"' + (s.watch_mode === 'fast' ? ' selected' : '') + '>Fast</option><option value="balanced"' + (s.watch_mode === 'balanced' ? ' selected' : '') + '>Balanced</option><option value="deep"' + (s.watch_mode === 'deep' ? ' selected' : '') + '>Best</option></select></label></div></div>' +
-      '<div class="au-card"><b>🔔 Tell me when a clip is ready</b><small>A web address (Discord webhook, Zapier, your own script). It gets only the title, hook, score and hashtags; the video is never sent.</small>' +
+      '<div class="au-card"><b><span class="material-symbols-rounded" aria-hidden="true">notifications_active</span> Tell me when a clip is ready</b><small>A web address (Discord webhook, Zapier, your own script). It gets only the title, hook, score and hashtags; the video is never sent.</small>' +
       '<input id="au-hook" placeholder="https://… (leave empty for none)" value="' + esc(s.webhook_url || '') + '"></div>' +
-      '<div class="au-card"><b>🚫 Words to avoid</b><small>A clip whose title, hook, description or captions contain one of these gets a red "Check before posting" tag.</small>' +
+      '<div class="au-card"><b><span class="material-symbols-rounded" aria-hidden="true">block</span> Words to avoid</b><small>A clip whose title, hook, description or captions contain one of these gets a red "Check before posting" tag.</small>' +
       '<textarea id="au-banned" rows="3" placeholder="one word per line or separated by commas">' + esc((s.banned || []).join(', ')) + '</textarea></div>' +
       '<div class="kd-row"><button type="button" class="primary" data-au="save">Save</button><span class="muted" id="au-note"></span></div>';
   }
@@ -78,8 +78,8 @@
 
   function shortcutPane() {
     $('st-body').innerHTML = '<p class="muted">Come back to ClipGenius in one click. The shortcut opens it if it is running and starts it if not.</p>' +
-      '<div class="kd-grid"><button type="button" class="kd-p" data-sc="desk"><b>🖥 Desktop + Start Menu</b><small>An icon on your Desktop and in the Start Menu (Windows), or on the Desktop (Mac / Linux).</small></button>' +
-      '<button type="button" class="kd-p" data-sc="app"><b>⬇ Install as an app</b><small>Its own window and taskbar icon from Chrome or Edge, no browser tabs.</small></button></div><p class="muted" id="sc-note"></p>';
+      '<div class="kd-grid"><button type="button" class="kd-p" data-sc="desk"><b><span class="material-symbols-rounded" aria-hidden="true">desktop_mac</span> Desktop + Start Menu</b><small>An icon on your Desktop and in the Start Menu (Windows), or on the Desktop (Mac / Linux).</small></button>' +
+      '<button type="button" class="kd-p" data-sc="app"><b><span class="material-symbols-rounded" aria-hidden="true">install_desktop</span> Install as an app</b><small>Its own window and taskbar icon from Chrome or Edge, no browser tabs.</small></button></div><p class="muted" id="sc-note"></p>';
   }
   async function shortcutAction(kind) {
     const note = t => { const n = $('sc-note'); if (n) n.innerHTML = t; };
@@ -90,10 +90,9 @@
   function addSidebarItem() {
     const side = document.querySelector('aside.sidebar'); if (!side || $('side-settings')) return;
     const navs = side.querySelectorAll('.nav'); const last = navs[navs.length - 1]; if (!last) return;
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'nav'; b.id = 'side-settings'; b.innerHTML = '⚙ &nbsp; Settings';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'nav'; b.id = 'side-settings'; b.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">settings</span><span>Settings</span>';
     b.onclick = () => settingsDialog('key');
-    const campaigns = $('side-campaigns');
-    if (campaigns) campaigns.before(b); else last.after(b);
+    last.after(b);
   }
 
   // ---------- API key pane

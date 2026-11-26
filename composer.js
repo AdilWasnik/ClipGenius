@@ -11,19 +11,19 @@
     const panelOf = id => { const el = $(id); return el ? el.closest('section.panel,details.panel') : null; };
     const tools = ['queue-panel', 'ai-panel', 'llm-panel', 'live-panel'].map($);
     const groups = [
-      { key: 'options', label: '⚙ Clip options', panels: [$('part-pick'), $('yt-login'), panelOf('accurate')] },
-      { key: 'frame', label: '▣ Frame & layout', panels: [panelOf('source')] },
-      { key: 'captions', label: 'Aa Captions & heading', panels: [panelOf('captions')] },
-      { key: 'style', label: '✦ Style extras', panels: [$('style-panel')] },
-      { key: 'tools', label: '🧰 Streams & tools', panels: tools },
+      { key: 'options', icon: 'tune', label: 'Clip options', panels: [$('part-pick'), $('yt-login'), panelOf('accurate')] },
+      { key: 'frame', icon: 'crop', label: 'Frame & layout', panels: [panelOf('source')] },
+      { key: 'captions', icon: 'subtitles', label: 'Captions & heading', panels: [panelOf('captions')] },
+      { key: 'style', icon: 'auto_awesome', label: 'Style extras', panels: [$('style-panel')] },
+      { key: 'tools', icon: 'live_tv', label: 'Streams & tools', panels: tools },
     ];
     // panels that other scripts add (transcript search, visual review) get their own tab
     const known = new Set([importPanel, $('saved-edit')].concat(...groups.map(g => g.panels)));
     const rest = [...view.children].filter(e => /^(SECTION|DETAILS)$/.test(e.tagName) && e.classList.contains('panel') && !known.has(e));
-    if (rest.length) groups.splice(3, 0, { key: 'search', label: '🔎 Transcript & review', panels: rest });
+    if (rest.length) groups.splice(3, 0, { key: 'search', icon: 'manage_search', label: 'Transcript & review', panels: rest });
 
     const head = importPanel.querySelector('.section-head h2');
-    if (head) head.innerHTML = 'Paste a link. <em>Get clips.</em>';
+    if (head) head.innerHTML = '<span class="step">01</span> Paste a link. <em>Get clips.</em>';
 
     // ---- Activity (what is running and what is waiting)
     const activity = document.createElement('section');
@@ -38,7 +38,7 @@
     adv.id = 'adv';
     adv.className = 'adv';
     adv.innerHTML = '<div class="adv-head"><div id="composer-summary" class="summary" role="status"></div>' +
-      '<button type="button" id="adv-toggle" class="adv-toggle" aria-expanded="false">Advanced ▾</button></div>' +
+      '<button type="button" id="adv-toggle" class="adv-toggle" aria-expanded="false"><span class="material-symbols-rounded" aria-hidden="true">tune</span><span>Advanced</span><span class="material-symbols-rounded" aria-hidden="true">expand_more</span></button></div>' +
       '<div class="tabs" role="tablist" aria-label="Advanced options" hidden></div><div class="adv-body"></div>';
     activity.after(adv);
     const tabs = adv.querySelector('.tabs');
@@ -73,7 +73,7 @@
     const queueLink = document.createElement('button');
     queueLink.type = 'button';
     queueLink.className = 'linklike queue-add-link';
-    queueLink.textContent = '＋ Add to queue instead (runs after the current job)';
+    queueLink.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">playlist_add</span><span>Add to queue instead (runs after the current job)</span>';
     const row = importPanel.querySelector('.url-row');
     if (row) { row.after(queueLink); queueLink.after(composerNote); }
     queueLink.onclick = async () => {
@@ -98,7 +98,7 @@
       const tab = document.createElement('button');
       tab.type = 'button';
       tab.className = 'tab';
-      tab.textContent = g.label;
+      tab.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">' + g.icon + '</span><span>' + esc(g.label) + '</span>';
       tab.setAttribute('role', 'tab');
       tab.onclick = () => open(open.current === g.key ? '' : g.key);
       tab.dataset.key = g.key;
@@ -116,7 +116,7 @@
     function setAdvanced(on) {
       tabs.hidden = !on;
       toggle.setAttribute('aria-expanded', on);
-      toggle.textContent = on ? 'Advanced ▴' : 'Advanced ▾';
+      toggle.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">tune</span><span>Advanced</span><span class="material-symbols-rounded" aria-hidden="true">' + (on ? 'expand_less' : 'expand_more') + '</span>';
       if (!on) open('');
     }
     toggle.onclick = () => { if (tabs.hidden) { setAdvanced(true); open('options'); } else { setAdvanced(false); } };

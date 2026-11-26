@@ -23,7 +23,7 @@
   const curLayout = () => { try { return typeof layout === 'string' ? layout : 'stack'; } catch (e) { return 'stack'; } };
 
   function layoutSvg(id) {
-    const g = '#4a4a5a', c = '#ff3d6e', r = (x, y, w, h, f) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="' + f + '"/>';
+    const g = '#3a3a3c', c = '#0a84ff', r = (x, y, w, h, f) => '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="2" fill="' + f + '"/>';
     const body = { stack: r(0, 0, 36, 22, c) + r(0, 22, 36, 42, g), bottom: r(0, 0, 36, 42, g) + r(0, 42, 36, 22, c), blur: r(0, 0, 36, 64, '#2a2a38') + r(0, 18, 36, 28, g), fill: r(0, 0, 36, 64, g), game: r(0, 0, 36, 64, g),
       pip_tl: r(0, 0, 36, 64, g) + r(3, 3, 14, 14, c), pip_tr: r(0, 0, 36, 64, g) + r(19, 3, 14, 14, c), pip_bl: r(0, 0, 36, 64, g) + r(3, 47, 14, 14, c), pip_br: r(0, 0, 36, 64, g) + r(19, 47, 14, 14, c),
       circle: r(0, 0, 36, 64, g) + '<circle cx="18" cy="48" r="9" fill="' + c + '"/>', side: r(0, 0, 18, 64, c) + r(18, 0, 18, 64, g) }[id] || r(0, 0, 36, 64, g);
@@ -97,15 +97,15 @@
     if ($('right-bar')) return;
     const bar = document.createElement('aside');
     bar.id = 'right-bar'; bar.className = 'right-bar';
-    bar.innerHTML = '<button type="button" id="rb-toggle" class="rb-toggle" aria-label="Open or close the live preview">▶</button>' +
-      '<div class="rb-inner"><div class="rb-head"><b>Live Preview (9:16)</b><span class="rb-badge">● Real-time style preview</span></div>' +
+    bar.innerHTML = '<button type="button" id="rb-toggle" class="rb-toggle" aria-label="Open or close the live preview"><span class="material-symbols-rounded" aria-hidden="true">chevron_right</span></button>' +
+      '<div class="rb-inner"><div class="rb-head"><b>Live Preview (9:16)</b><span class="rb-badge"><span class="material-symbols-rounded fill" aria-hidden="true">fiber_manual_record</span> Real-time style preview</span></div>' +
       '<div class="rb-stage"><canvas id="rb-canvas" width="360" height="640"></canvas><div class="rb-empty-note" id="rb-empty">Paste a link and press Get preview to see your clip here.</div></div>' +
-      '<button type="button" class="rb-make" id="rb-make" style="background:linear-gradient(90deg,#35e0d0,#c8f94b)!important;color:#10101a!important">⚡ Make clips</button><div id="rb-live"></div>' +
-      '<div class="rb-tabs" id="rb-tabs">' + [['caption', 'Aa Caption'], ['layout', '▦ Layout'], ['heading', '✦ Heading'], ['output', '⚙ Output']].map(([k, n]) => '<button type="button" data-tab="' + k + '">' + n + '</button>').join('') + '</div>' +
+      '<button type="button" class="rb-make" id="rb-make"><span class="material-symbols-rounded fill" aria-hidden="true">bolt</span> Make clips</button><div id="rb-live"></div>' +
+      '<div class="rb-tabs" id="rb-tabs">' + [['caption', 'subtitles', 'Caption'], ['layout', 'dashboard', 'Layout'], ['heading', 'title', 'Heading'], ['output', 'tune', 'Output']].map(([k, ic, n]) => '<button type="button" data-tab="' + k + '"><span class="material-symbols-rounded" aria-hidden="true">' + ic + '</span><span>' + n + '</span></button>').join('') + '</div>' +
       '<div class="rb-pane" id="rb-pane"></div></div>';
     document.body.append(bar);
     try { open = localStorage.getItem('neon-rightbar') !== '0' && window.innerWidth > 1280; } catch (e) { /* ignore */ }
-    const set = on => { document.body.classList.toggle('rb-open', on); $('rb-toggle').textContent = on ? '▶' : '◀'; try { localStorage.setItem('neon-rightbar', on ? '1' : '0'); } catch (e) { /* ignore */ } };
+    const set = on => { document.body.classList.toggle('rb-open', on); $('rb-toggle').innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">' + (on ? 'chevron_right' : 'chevron_left') + '</span>'; try { localStorage.setItem('neon-rightbar', on ? '1' : '0'); } catch (e) { /* ignore */ } };
     set(open);
     $('rb-toggle').onclick = () => set(!document.body.classList.contains('rb-open'));
     bar.addEventListener('click', e => {

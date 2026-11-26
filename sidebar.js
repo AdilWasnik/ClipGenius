@@ -20,12 +20,12 @@
     card.type = 'button';
     card.id = 'side-storage';
     card.className = 'side-card';
-    card.innerHTML = '<span class="sc-title">▤ Storage</span><span class="sc-line" id="side-storage-line">checking…</span><span class="sc-bar"><i id="side-storage-bar"></i></span>';
+    card.innerHTML = '<span class="sc-title"><span class="material-symbols-rounded" aria-hidden="true">hard_drive</span><span>Storage</span></span><span class="sc-line" id="side-storage-line">checking…</span><span class="sc-bar"><i id="side-storage-bar"></i></span>';
     if (anchor) anchor.before(card); else side.append(card);
 
     const dlg = document.createElement('dialog');
     dlg.id = 'storage-dialog';
-    dlg.innerHTML = '<div class="sd-head"><b>Storage</b><button type="button" id="sd-close" class="mini-btn">Close</button></div>' +
+    dlg.innerHTML = '<div class="sd-head"><b><span class="material-symbols-rounded" aria-hidden="true">hard_drive</span> Storage</b><button type="button" id="sd-close" class="mini-btn" aria-label="Close"><span class="material-symbols-rounded" aria-hidden="true">close</span> Close</button></div>' +
       '<div id="sd-body" class="sd-body">Loading…</div>';
     document.body.append(dlg);
     $('sd-close').onclick = () => dlg.close();
